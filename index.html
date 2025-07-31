@@ -1,0 +1,476 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <title>HitRadio - Météo</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link
+    href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css"
+    rel="stylesheet"
+  />
+
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+ <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+   <link rel="stylesheet" href="css/style.css">
+ 
+</head>
+<body class="light-mode justify-content-center">
+
+
+
+
+<div class="container shadow-lg py-4 mb-5 mt-5 transition-all  ">
+    <!-- Titre -->
+
+
+<div class="container  ">
+  <div class="row align-items-center gy-3">
+    <!-- Titre -->
+    <div class="col-12 col-md-4 text-center text-md-start">
+      <h3 class="mb-0">🌦️ Météo HitRadio</h3>
+    </div>
+
+    <!-- Barre de recherche -->
+    <div class="col-12 col-md-5">
+      <div class="input-group search-bar shadow-sm rounded-pill overflow-hidden w-100">
+        <span class="input-group-text bg-gradient text-white border-0 px-3" style="background: linear-gradient(135deg, #007bff, #00c6ff);">
+          <i class="bi bi-search"></i>
+        </span>
+        <input type="text" class="form-control border-0" placeholder="Entrez une ville..." 
+        id="search-city" style="background-color: transparent;">
+        <button class="btn text-white px-4" id="search-btn" 
+        style="background: linear-gradient(135deg, #007bff, #00c6ff); border: none;">
+          Rechercher
+        </button>
+      </div>
+    </div>
+
+    <!-- Bouton de thème -->
+    <div class="col-12 col-md-3 text-center text-md-end">
+      <button id="toggleTheme" class="btn btn-outline-dark">🌙 Mode sombre</button>
+    </div>
+  </div>
+</div>
+
+
+<div class="container  p-3 mt-5" style="max-width: 900px;">
+
+    <!-- Météo actuelle -->
+   <section id="current-weather" class="mb-5">
+  <h4 class="section-title"> <span class="small">📍</span> Météo actuelle </h4>
+  <div class="card p-3 pt-0 shadow-sm transition-all" >
+
+    <div class="d-flex align-items-center justify-content-between mb-3 ">
+      <div >
+       <div class="fw-bold"> Aujourd'hui &nbsp;&nbsp;<span id="current-time">--:--:--</span></div> 
+        <h4 id="city-name" class="text-primary">Ma ville</h4>
+      </div>
+
+    
+
+      <div class="text-end">
+        <h1 id="temp" class="display-5  fw-bold">--°C</h1>
+      </div>
+    </div>
+
+   <div class="d-flex flex-wrap justify-content-between mt-3" style="gap: 1rem;">
+  <p class="mb-0"><strong>Condition :</strong> <span id="descrption">--</span></p>
+  <p class="mb-0"><strong>Pression :</strong> <span id="pressure">-- hPa</span></p>
+  <p class="mb-0"><strong>Humidité :</strong> <span id="humidity">-- %</span></p>
+  <p class="mb-0"><strong>Vent :</strong> <span id="wind-speed">-- km/h</span> <i class="bi bi-arrow-up-right"></i> <span id="wind-dir">--</span></p>
+
+</div>
+  </div>
+</section>
+
+ <!-- Cartes météo (5 couches météo) -->
+  <h4 class="section-title"><span class="small">🗺️</span> Cartes météo - 4 couches</h4>
+<div id="map" style="height: 500px;"></div>
+
+
+
+
+
+
+    <!-- Prévisions  pour 4 prochanines heures -->
+   <section id="forecast-6" class="mb-5">
+  <h4 class="section-title"><span class="small">⏰</span> Prévisions pour les prochaines heures</h4>
+
+<div class="row text-center" id="forecast-3h-list">
+  <!-- les cartes horaires seront injectées ici -->
+</div>
+
+
+ 
+</section>
+   
+
+    <!-- Prévisions journalières sur  prochains jours -->
+    <section id="daily-forecast-4days" class="mb-5">
+      <h4 class="section-title"><span class="small">📅</span> Prévisions pour les  porochains jours</h4>
+      <div class="row" id="forecast-6days" >
+        <!-- Exemple statique, à remplacer par dynamique -->
+      
+        <!-- … à compléter dynamiquement -->
+      </div>
+    </section>
+
+   
+
+
+
+    <!-- Alerte -->
+    <section id="weather-alerts" class="mb-5">
+      <h3 class="section-title text-danger">⚠️ Alertes météo</h3>
+      <div class="alert alert-warning transition-all" role="alert">
+        Risque de vent fort ce soir à partir de 21h.
+      </div>
+    </section>
+   
+
+
+
+</div>
+
+
+
+
+
+
+
+
+  <script>
+
+
+    function updateCurrentTime() {
+  const now = new Date();
+
+  // Format options pour heure:minutes:secondes + date FR
+  const options = {
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric'
+  };
+
+  // Formatage date/heure en français
+  const timeString = now.toLocaleString('fr-FR', options);
+
+  document.getElementById('current-time').textContent = timeString;
+}
+
+// Appel initial + mise à jour chaque seconde
+updateCurrentTime();
+setInterval(updateCurrentTime, 1000);
+    // GÉOLOCALISATION MÉTÉO
+
+function getWeatherByLocation(lat, lon) {
+  const apiKey = '8b1d28c75b6ef032c4f2d3ea65b3fd1f';
+  const url = `https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&appid=${apiKey}&units=metric&lang=fr`;
+
+  fetch(url)
+    .then(response => response.json())
+    .then(data => {
+      document.getElementById('city-name').textContent = data.name;
+      document.getElementById('temp').textContent = `${Math.round(data.main.temp)} °C`;
+      document.getElementById('descrption').textContent = data.weather[0].description;
+      document.getElementById('pressure').textContent = `${data.main.pressure} hPa`;
+
+      // ✅ Ajout des lignes manquantes :
+      document.getElementById('humidity').textContent = `${data.main.humidity} %`;
+      document.getElementById('wind-speed').textContent = `${data.wind.speed} km/h`;
+      document.getElementById('wind-dir').textContent = `${data.wind.deg}°`;
+    })
+    .catch(error => {
+      console.error('Erreur lors de la récupération des données météo:', error);
+    });
+}
+
+
+
+
+
+function getLocation() {
+  if (navigator.geolocation) {
+    navigator.geolocation.getCurrentPosition(
+      position => {
+        const lat = position.coords.latitude;
+        const lon = position.coords.longitude;
+        getWeatherByLocation(lat, lon);
+        loadForecast(lat, lon);
+        initMap(lat, lon);
+     },
+      error => {
+        console.error('Erreur de géolocalisation :', error.message);
+        alert("Impossible de récupérer votre position. Activez la géolocalisation.");
+      }
+    );
+  } else {
+    alert("Votre navigateur ne supporte pas la géolocalisation.");
+  }
+}
+
+// THÈME SOMBRE / CLAIR
+const toggleBtn = document.getElementById("toggleTheme");
+
+toggleBtn.addEventListener("click", () => {
+  document.body.classList.toggle("dark-mode");
+  document.body.classList.toggle("light-mode");
+
+  if (document.body.classList.contains("dark-mode")) {
+    toggleBtn.textContent = "☀️ Mode clair";
+    toggleBtn.classList.remove("btn-outline-dark");
+    toggleBtn.classList.add("btn-outline-light");
+  } else {
+    toggleBtn.textContent = "🌙 Mode sombre";
+    toggleBtn.classList.remove("btn-outline-light");
+    toggleBtn.classList.add("btn-outline-dark");
+  }
+});
+
+// CHARGEMENT INITIAL
+window.onload = function () {
+  document.body.classList.add("light-mode");
+  getLocation(); // ← très important
+  setInterval(() => {
+    getLocation();
+  }, 15 * 60 * 1000);
+};
+
+  </script>
+
+<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+  <script>
+    const apiKey = '8b1d28c75b6ef032c4f2d3ea65b3fd1f'; // Remplace si tu changes d'API Key
+
+    // 📍 Initialisation de la carte centrée sur Casablanca
+    async function initMap(lat,lon){ 
+
+ const map = L.map('map').setView([lat,lon], 6);
+console.log(lat,lon);
+    // 🗺️ Couche de base OpenStreetMap
+    const baseLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '&copy; OpenStreetMap contributors'
+    }).addTo(map);
+
+    // 🌬️ Couche vent
+    const windLayer = L.tileLayer(`https://tile.openweathermap.org/map/wind_new/{z}/{x}/{y}.png?appid=${apiKey}`, {
+      attribution: '&copy; OpenWeatherMap',
+      opacity: 0.6
+    });
+
+    // 🌡️ Couche température
+    const tempLayer = L.tileLayer(`https://tile.openweathermap.org/map/temp_new/{z}/{x}/{y}.png?appid=${apiKey}`, {
+      attribution: '&copy; OpenWeatherMap',
+      opacity: 0.6
+    });
+
+    // 🌧️ Couche pluie
+    const rainLayer = L.tileLayer(`https://tile.openweathermap.org/map/precipitation_new/{z}/{x}/{y}.png?appid=${apiKey}`, {
+      attribution: '&copy; OpenWeatherMap',
+      opacity: 0.6
+    });
+
+    // ☁️ Couche nuages
+    const cloudsLayer = L.tileLayer(`https://tile.openweathermap.org/map/clouds_new/{z}/{x}/{y}.png?appid=${apiKey}`, {
+      attribution: '&copy; OpenWeatherMap',
+      opacity: 0.6
+    });
+
+    // ✅ Contrôle des couches
+    const overlays = {
+      "🌬️ Vent": windLayer,
+      "🌡️ Température": tempLayer,
+      "🌧️ Précipitations": rainLayer,
+      "☁️ Nuages": cloudsLayer
+    };
+
+    L.control.layers(null, overlays, { collapsed: false }).addTo(map);
+
+    // Tu peux activer une couche par défaut si tu veux :
+    tempLayer.addTo(map);
+
+
+     }
+    // active la température par défaut
+
+
+
+
+
+async function getWeatherByCity(city) {
+  const apiKey = '8b1d28c75b6ef032c4f2d3ea65b3fd1f';
+  
+  // URL météo actuelle
+  const urlCurrent = `https://api.openweathermap.org/data/2.5/weather?q=${city}&appid=${apiKey}&units=metric&lang=fr`;
+  
+  const resCurrent = await fetch(urlCurrent);
+  if (!resCurrent.ok) {
+    alert("Ville introuvable !");
+    return;
+  }
+  const data = await resCurrent.json();
+
+  // Afficher météo actuelle
+  document.getElementById('city-name').textContent = data.name;
+  document.getElementById('temp').textContent = `${Math.round(data.main.temp)} °C`;
+  document.getElementById('descrption').textContent = data.weather[0].description;
+  document.getElementById('pressure').textContent = `${data.main.pressure} hPa`;
+  document.getElementById('humidity').textContent = `${data.main.humidity} %`;
+  document.getElementById('wind-speed').textContent = `${data.wind.speed} km/h`;
+  document.getElementById('wind-dir').textContent = `${data.wind.deg}°`;
+
+  // Charger prévisions avec les coordonnées récupérées
+  const lat = data.coord.lat;
+  const lon = data.coord.lon;
+  loadForecast(lat, lon);
+  initMap(lat, lon);
+}
+
+document.getElementById('search-btn').addEventListener('click', () => {
+  const city = document.getElementById('search-city').value.trim();
+  if (city !== '') {
+    getWeatherByCity(city);
+  } else {
+    alert("Veuillez entrer une ville");
+  }
+});
+
+
+
+
+
+
+  </script>
+
+
+
+
+
+
+<script>
+     // longitude
+
+async function loadForecast(lat, lon) {
+  const apiKey = '8b1d28c75b6ef032c4f2d3ea65b3fd1f';
+  const url = `https://api.openweathermap.org/data/2.5/forecast?lat=${lat}&lon=${lon}&units=metric&lang=fr&appid=${apiKey}`;
+
+  const res = await fetch(url);
+  if (!res.ok) throw new Error('Erreur API météo');
+  const data = await res.json();
+
+  // Filtrer uniquement les créneaux après l'heure actuelle
+  const now = Date.now();
+  const prochainesHeures = data.list.filter(item => (item.dt * 1000) > now);
+
+  // Prendre seulement les 4 ou 6 prochaines tranches
+  const nextSlots = prochainesHeures.slice(0, 6);
+
+  renderForecast(nextSlots);
+}
+
+function renderForecast(hours) {
+  const container = document.getElementById('forecast-3h-list');
+  container.innerHTML = '';
+
+  hours.forEach(hour => {
+    const date = new Date(hour.dt * 1000);
+    const time = date.getHours().toString().padStart(2, '0') + 'h';
+    const icon = `https://openweathermap.org/img/wn/${hour.weather[0].icon}@2x.png`;
+    const temp = Math.round(hour.main.temp);
+
+    container.innerHTML += `
+      <div class="col-12 col-md-2 mb-3">
+        <div class="card text-center p-3 transition-all ">
+          <h5>${time}</h5>
+          <img src="${icon}" width="90" alt="">
+          <p>${temp}°C</p>
+        </div>
+      </div>
+    `;
+  });
+}
+
+
+async function loadForecast(lat, lon) {
+  const apiKey = '8b1d28c75b6ef032c4f2d3ea65b3fd1f';
+  const url = `https://api.openweathermap.org/data/2.5/forecast?lat=${lat}&lon=${lon}&units=metric&lang=fr&appid=${apiKey}`;
+  const res = await fetch(url);
+  if (!res.ok) throw new Error('Erreur API météo');
+  const data = await res.json();
+
+  // Affichage prévisions 3h
+  const next4 = data.list.slice(0, 6);
+  renderForecast(next4);
+
+  // Affichage prévisions journalières calculées à partir de forecast
+  renderDailyForecastFromForecastApi(data.list);
+}
+
+
+
+
+
+function renderDailyForecastFromForecastApi(list) {
+  const container = document.getElementById('forecast-6days');
+  container.innerHTML = '';
+
+  // Regroupe par date (yyyy-mm-dd)
+  const days = {};
+
+  list.forEach(item => {
+    const date = new Date(item.dt * 1000);
+    const dayKey = date.toISOString().split('T')[0]; // format YYYY-MM-DD
+
+    if (!days[dayKey]) {
+      days[dayKey] = {
+        tempsMin: item.main.temp_min,
+        tempsMax: item.main.temp_max,
+        desc: item.weather[0].description,
+        icon: item.weather[0].icon,
+        count: 1
+      };
+    } else {
+      days[dayKey].tempsMin = Math.min(days[dayKey].tempsMin, item.main.temp_min);
+      days[dayKey].tempsMax = Math.max(days[dayKey].tempsMax, item.main.temp_max);
+      days[dayKey].count++;
+      // Optionnel : prendre la description/icône la plus fréquente ou la première
+    }
+  });
+
+  // Prendre les premiers 5 jours (exclure aujourd'hui si tu veux)
+  const keys = Object.keys(days).slice(0, 6);
+
+  keys.forEach(dayKey => {
+    const day = days[dayKey];
+    const dateObj = new Date(dayKey);
+    const options = { weekday: 'long', day: 'numeric', month: 'short' };
+    const dayName = dateObj.toLocaleDateString('fr-FR', options);
+
+    container.innerHTML += `
+      <div class="col-12 col-md-2 mb-3 " >
+        <div class="card text-center p-3 transition-all"  style="height: 260px;">
+          <h5>${dayName}</h5>
+          <img src="https://openweathermap.org/img/wn/${day.icon}@2x.png" alt="${day.desc}" width="90" />
+          <p>${day.desc}</p>
+          <p>${Math.round(day.tempsMax)}°C</p>
+        </div>
+      </div>
+    `;
+  });
+}
+
+
+
+
+</script>
+
+
+
+
+
+
+</body>
+</html>
