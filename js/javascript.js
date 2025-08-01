@@ -1,7 +1,7 @@
 
 
 
-    function updateCurrentTime() {
+function updateCurrentTime() {
   const now = new Date();
 
   // Format options pour heure:minutes:secondes + date FR
@@ -41,6 +41,7 @@ function getWeatherByLocation(lat, lon) {
       document.getElementById('humidity').textContent = `${data.main.humidity} %`;
       document.getElementById('wind-speed').textContent = `${data.wind.speed} km/h`;
       document.getElementById('wind-dir').textContent = `${data.wind.deg}°`;
+      checkWeatherAlerts(data);
     })
     .catch(error => {
       console.error('Erreur lors de la récupération des données météo:', error);
@@ -182,7 +183,7 @@ async function getWeatherByCity(city) {
   document.getElementById('humidity').textContent = `${data.main.humidity} %`;
   document.getElementById('wind-speed').textContent = `${data.wind.speed} km/h`;
   document.getElementById('wind-dir').textContent = `${data.wind.deg}°`;
-
+checkWeatherAlerts(data);
   // Charger prévisions avec les coordonnées récupérées
   const lat = data.coord.lat;
   const lon = data.coord.lon;
@@ -297,19 +298,68 @@ function renderDailyForecastFromForecastApi(list) {
     const dayName = dateObj.toLocaleDateString('fr-FR', options);
 
     container.innerHTML += `
-      <div class="col-12 col-md-2 mb-3 " >
-        <div class="card text-center p-3 transition-all"  style="height: 260px;">
-          <h5>${dayName}</h5>
-          <img src="https://openweathermap.org/img/wn/${day.icon}@2x.png" alt="${day.desc}" width="90" />
-          <p>${day.desc}</p>
-          <p>${Math.round(day.tempsMax)}°C</p>
-        </div>
-      </div>
+   <div class="col-12 col-md-2 mb-3">
+  <div class="card text-center p-3 transition-all" 
+       style="height: 290px; display: flex; flex-direction: column; justify-content: space-between;">
+       
+    <div>
+      <h5>${dayName}</h5>
+      <img src="https://openweathermap.org/img/wn/${day.icon}@2x.png" 
+           alt="${day.desc}" width="90" />
+      <p>${day.desc}</p>
+    </div>
+
+    <div>
+      <p style="font-weight: bold; margin: 0;">
+        Min: ${Math.round(day.tempsMin)}°C  Max: ${Math.round(day.tempsMax)}°C
+      </p>
+    </div>
+
+  </div>
+</div>
     `;
   });
 }
 
 
+function checkWeatherAlerts(data) {
+  const alertContainer = document.getElementById("alert-container");
+  alertContainer.innerHTML = ""; // Efface ancienne alerte
+
+  let alerts = [];
+
+  // ⚠️ Vent fort
+  if (data.wind.speed > 40) {
+    alerts.push(`💨 Vent fort prévu (${data.wind.speed} km/h)`);
+  }
+
+  // 🌧️ Pluie prévue
+  if (data.weather[0].main.toLowerCase().includes("rain")) {
+    alerts.push("🌧️ Risque de pluie");
+  }
+
+  // ❄️ Températures basses
+  if (data.main.temp < 5) {
+    alerts.push(`❄️ Températures basses (${data.main.temp}°C)`);
+  }
+
+  // ✅ Afficher les alertes si il y en a
+  if (alerts.length > 0) {
+    alerts.forEach(alertText => {
+      const alertDiv = document.createElement("div");
+      alertDiv.className = "alert alert-warning transition-all mb-2";
+      alertDiv.role = "alert";
+      alertDiv.textContent = alertText;
+      alertContainer.appendChild(alertDiv);
+    });
+  } else {
+    // Pas d'alerte
+    const noAlert = document.createElement("div");
+    noAlert.className = "alert alert-success";
+    noAlert.textContent = "✅ Aucune alerte météo.";
+    alertContainer.appendChild(noAlert);
+  }
+}
 
 
 
