@@ -69,8 +69,12 @@
 
     
 
-      <div class="text-end">
-        <h1 id="temp" class="display-5  fw-bold">--°C</h1>
+      <div class="d-flex">
+         <img id="weather-icon" src="" alt="Icône météo" 
+         style="width:90px; height:90px; margin-right: 3px;">
+        <h1 id="temp" class="display-5 mt-2 fw-bold">--°C</h1>
+           
+
       </div>
     </div>
 
@@ -84,12 +88,9 @@
   </div>
 </section>
 
- <!-- Cartes météo (5 couches météo) -->
+ <!-- Cartes météo (4 couches météo) -->
   <h4 class="section-title"><span class="small">🗺️</span> Cartes météo - 4 couches</h4>
 <div id="map" style="height: 500px;"></div>
-
-
-
 
 
 
@@ -101,10 +102,15 @@
   <!-- les cartes horaires seront injectées ici -->
 </div>
 
-
- 
 </section>
-   
+
+
+   <section id="weather-graph" class="mb-5">
+  <h4 class="section-title"><span class="small">📊</span> Évolution des variables climatiques principales</h4>
+<canvas id="multiLayerChart" style="max-height: 400px;"></canvas>
+</section>
+
+
 
     <!-- Prévisions journalières sur  prochains jours -->
     <section id="daily-forecast-4days" class="mb-5">
@@ -132,7 +138,7 @@
 </div>
 
 
-
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
  <script src="js/javascript.js"></script>
 <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>

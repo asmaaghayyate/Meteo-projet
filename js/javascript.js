@@ -32,6 +32,7 @@ function getWeatherByLocation(lat, lon) {
   fetch(url)
     .then(response => response.json())
     .then(data => {
+
       document.getElementById('city-name').textContent = data.name;
       document.getElementById('temp').textContent = `${Math.round(data.main.temp)} °C`;
       document.getElementById('descrption').textContent = data.weather[0].description;
@@ -41,6 +42,10 @@ function getWeatherByLocation(lat, lon) {
       document.getElementById('humidity').textContent = `${data.main.humidity} %`;
       document.getElementById('wind-speed').textContent = `${data.wind.speed} km/h`;
       document.getElementById('wind-dir').textContent = `${data.wind.deg}°`;
+    const iconCode = data.weather[0].icon; // ex: "04d"
+      const iconUrl = `https://openweathermap.org/img/wn/${iconCode}@2x.png`;
+      document.getElementById('weather-icon').src = iconUrl;
+
       checkWeatherAlerts(data);
     })
     .catch(error => {
@@ -48,7 +53,7 @@ function getWeatherByLocation(lat, lon) {
     });
 }
 
-
+/////////111
 function getWeatherByCity(city) {
   const apiKey = '8b1d28c75b6ef032c4f2d3ea65b3fd1f';
   const url = `https://api.openweathermap.org/data/2.5/weather?q=${encodeURIComponent(city)}&appid=${apiKey}&units=metric&lang=fr`;
@@ -160,7 +165,7 @@ async function initMap(lat, lon) {
 
 
 
-
+//////333333
 
 async function getWeatherByCity(city) {
   const apiKey = '8b1d28c75b6ef032c4f2d3ea65b3fd1f';
@@ -194,11 +199,14 @@ checkWeatherAlerts(data);
 document.getElementById('search-btn').addEventListener('click', () => {
   const city = document.getElementById('search-city').value.trim();
   if (city !== '') {
-    getWeatherByCity(city); // On appellera cette fonction pour afficher la météo de la ville saisie
+    getWeatherByCity(city);
+     // On appellera cette fonction pour afficher la météo de la ville saisie
   } else {
     alert("Veuillez entrer une ville");
   }
 });
+
+
 
 
 async function loadForecast(lat, lon) {
@@ -217,7 +225,12 @@ async function loadForecast(lat, lon) {
   const nextSlots = prochainesHeures.slice(0, 6);
 
   renderForecast(nextSlots);
+  renderMultiLayerChart(nextSlots);
+renderDailyForecastFromForecastApi(data.list);
 }
+
+
+
 
 function renderForecast(hours) {
   const container = document.getElementById('forecast-3h-list');
@@ -242,20 +255,7 @@ function renderForecast(hours) {
 }
 
 
-async function loadForecast(lat, lon) {
-  const apiKey = '8b1d28c75b6ef032c4f2d3ea65b3fd1f';
-  const url = `https://api.openweathermap.org/data/2.5/forecast?lat=${lat}&lon=${lon}&units=metric&lang=fr&appid=${apiKey}`;
-  const res = await fetch(url);
-  if (!res.ok) throw new Error('Erreur API météo');
-  const data = await res.json();
 
-  // Affichage prévisions 3h
-  const next4 = data.list.slice(0, 6);
-  renderForecast(next4);
-
-  // Affichage prévisions journalières calculées à partir de forecast
-  renderDailyForecastFromForecastApi(data.list);
-}
 
 
 
@@ -363,4 +363,47 @@ function checkWeatherAlerts(data) {
 
 
 
+
+
+
+
+let tempChart; // Variable globale pour le graphe
+
+
+function renderMultiLayerChart(forecast) {
+  const labels = forecast.map(item => {
+    const date = new Date(item.dt * 1000);
+    return date.getHours() + "h";
+  });
+
+  const temperatures = forecast.map(item => item.main.temp);
+  const humidities = forecast.map(item => item.main.humidity);
+  const windSpeeds = forecast.map(item => item.wind.speed);
+  const precipitations = forecast.map(item => item.rain ? item.rain["3h"] : 0);
+
+  const ctx = document.getElementById('multiLayerChart').getContext('2d');
+
+  // ✅ détruire ancien graphe si existe
+  if (tempChart) {
+    tempChart.destroy();
+  }
+
+  // ✅ créer le nouveau graphe
+  tempChart = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: labels,
+      datasets: [
+        { label: 'Température (°C)', data: temperatures, borderColor: 'red', fill: false },
+        { label: 'Humidité (%)', data: humidities, borderColor: 'blue', fill: false },
+        { label: 'Vent (km/h)', data: windSpeeds, borderColor: 'green', fill: false },
+        { label: 'Précipitations (mm)', data: precipitations, borderColor: 'orange', fill: false }
+      ]
+    },
+    options: {
+      responsive: true,
+      plugins: { legend: { position: 'top' } }
+    }
+  });
+}
 
