@@ -106,7 +106,6 @@ function getLocation() {
   }
 }
 
-
 // THÈME SOMBRE / CLAIR
 const toggleBtn = document.getElementById("toggleTheme");
 
@@ -139,59 +138,43 @@ window.onload = function () {
     const apiKey = '8b1d28c75b6ef032c4f2d3ea65b3fd1f'; // Remplace si tu changes d'API Key
 
     // 📍 Initialisation de la carte centrée sur Casablanca
-  let map; // déclaration globale tout en haut de ton script
-
-
+  let map; // carte globale
 let windLayer, tempLayer, rainLayer, cloudsLayer;
 
-  async function initMap(lat,lon){ 
+function initMap(lat, lon) {
+  if (!map) {
+    // Première création de la carte
+    map = L.map('map').setView([lat, lon], 8);
 
- const map = L.map('map').setView([lat,lon], 6);
-console.log(lat,lon);
-    // 🗺️ Couche de base OpenStreetMap
-    const baseLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    // Base
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
       attribution: '&copy; OpenStreetMap contributors'
     }).addTo(map);
 
-    // 🌬️ Couche vent
-    const windLayer = L.tileLayer(`https://tile.openweathermap.org/map/wind_new/{z}/{x}/{y}.png?appid=${apiKey}`, {
-      attribution: '&copy; OpenWeatherMap',
-      opacity: 0.6
-    });
+    // Couches météo
+    windLayer = L.tileLayer(`https://tile.openweathermap.org/map/wind_new/{z}/{x}/{y}.png?appid=${apiKey}`, { opacity: 0.6 });
+    tempLayer = L.tileLayer(`https://tile.openweathermap.org/map/temp_new/{z}/{x}/{y}.png?appid=${apiKey}`, { opacity: 0.6 });
+    rainLayer = L.tileLayer(`https://tile.openweathermap.org/map/precipitation_new/{z}/{x}/{y}.png?appid=${apiKey}`, { opacity: 0.6 });
+    cloudsLayer = L.tileLayer(`https://tile.openweathermap.org/map/clouds_new/{z}/{x}/{y}.png?appid=${apiKey}`, { opacity: 0.6 });
 
-    // 🌡️ Couche température
-    const tempLayer = L.tileLayer(`https://tile.openweathermap.org/map/temp_new/{z}/{x}/{y}.png?appid=${apiKey}`, {
-      attribution: '&copy; OpenWeatherMap',
-      opacity: 0.6
-    });
-
-    // 🌧️ Couche pluie
-    const rainLayer = L.tileLayer(`https://tile.openweathermap.org/map/precipitation_new/{z}/{x}/{y}.png?appid=${apiKey}`, {
-      attribution: '&copy; OpenWeatherMap',
-      opacity: 0.6
-    });
-
-    // ☁️ Couche nuages
-    const cloudsLayer = L.tileLayer(`https://tile.openweathermap.org/map/clouds_new/{z}/{x}/{y}.png?appid=${apiKey}`, {
-      attribution: '&copy; OpenWeatherMap',
-      opacity: 0.6
-    });
-
-    // ✅ Contrôle des couches
+    // Contrôle
     const overlays = {
       "🌬️ Vent": windLayer,
       "🌡️ Température": tempLayer,
-      "🌧️ Précipitations": rainLayer,
+      "🌧️ Pluie": rainLayer,
       "☁️ Nuages": cloudsLayer
     };
 
     L.control.layers(null, overlays, { collapsed: false }).addTo(map);
 
-    // Tu peux activer une couche par défaut si tu veux :
+    // Par défaut : température
     tempLayer.addTo(map);
 
-
-     }
+  } else {
+    // Déplacer la carte sans la recréer
+    map.setView([lat, lon], 8);
+  }
+}
 
 //////333333
 
