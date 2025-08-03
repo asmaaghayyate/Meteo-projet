@@ -106,6 +106,7 @@ function getLocation() {
   }
 }
 
+
 // THÈME SOMBRE / CLAIR
 const toggleBtn = document.getElementById("toggleTheme");
 
@@ -140,61 +141,61 @@ window.onload = function () {
     // 📍 Initialisation de la carte centrée sur Casablanca
   let map; // déclaration globale tout en haut de ton script
 
-async function initMap(lat, lon) { 
-  if (!map) {
-    // Si la carte n'existe pas, on la crée
-    map = L.map('map').setView([lat, lon], 10);
+
+let windLayer, tempLayer, rainLayer, cloudsLayer;
+
+  async function initMap(lat,lon){ 
+
+ const map = L.map('map').setView([lat,lon], 6);
+console.log(lat,lon);
+    // 🗺️ Couche de base OpenStreetMap
     const baseLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
       attribution: '&copy; OpenStreetMap contributors'
     }).addTo(map);
 
+    // 🌬️ Couche vent
+    const windLayer = L.tileLayer(`https://tile.openweathermap.org/map/wind_new/{z}/{x}/{y}.png?appid=${apiKey}`, {
+      attribution: '&copy; OpenWeatherMap',
+      opacity: 0.6
+    });
+
+    // 🌡️ Couche température
+    const tempLayer = L.tileLayer(`https://tile.openweathermap.org/map/temp_new/{z}/{x}/{y}.png?appid=${apiKey}`, {
+      attribution: '&copy; OpenWeatherMap',
+      opacity: 0.6
+    });
+
+    // 🌧️ Couche pluie
+    const rainLayer = L.tileLayer(`https://tile.openweathermap.org/map/precipitation_new/{z}/{x}/{y}.png?appid=${apiKey}`, {
+      attribution: '&copy; OpenWeatherMap',
+      opacity: 0.6
+    });
+
+    // ☁️ Couche nuages
+    const cloudsLayer = L.tileLayer(`https://tile.openweathermap.org/map/clouds_new/{z}/{x}/{y}.png?appid=${apiKey}`, {
+      attribution: '&copy; OpenWeatherMap',
+      opacity: 0.6
+    });
+
+    // ✅ Contrôle des couches
     const overlays = {
-      "🌬️ Vent": L.tileLayer(`https://tile.openweathermap.org/map/wind_new/{z}/{x}/{y}.png?appid=${apiKey}`, { opacity: 0.6 }),
-      "🌡️ Température": L.tileLayer(`https://tile.openweathermap.org/map/temp_new/{z}/{x}/{y}.png?appid=${apiKey}`, { opacity: 0.6 }),
-      "🌧️ Précipitations": L.tileLayer(`https://tile.openweathermap.org/map/precipitation_new/{z}/{x}/{y}.png?appid=${apiKey}`, { opacity: 0.6 }),
-      "☁️ Nuages": L.tileLayer(`https://tile.openweathermap.org/map/clouds_new/{z}/{x}/{y}.png?appid=${apiKey}`, { opacity: 0.6 })
+      "🌬️ Vent": windLayer,
+      "🌡️ Température": tempLayer,
+      "🌧️ Précipitations": rainLayer,
+      "☁️ Nuages": cloudsLayer
     };
 
     L.control.layers(null, overlays, { collapsed: false }).addTo(map);
-    overlays["🌡️ Température"].addTo(map);
-  } else {
-    // Si la carte existe déjà, on la recadre seulement
-    map.setView([lat, lon], 10);
-  }
-}
+
+    // Tu peux activer une couche par défaut si tu veux :
+    tempLayer.addTo(map);
 
 
+     }
 
 //////333333
 
-async function getWeatherByCity(city) {
-  const apiKey = '8b1d28c75b6ef032c4f2d3ea65b3fd1f';
-  
-  // URL météo actuelle
-  const urlCurrent = `https://api.openweathermap.org/data/2.5/weather?q=${city}&appid=${apiKey}&units=metric&lang=fr`;
-  
-  const resCurrent = await fetch(urlCurrent);
-  if (!resCurrent.ok) {
-    alert("Ville introuvable !");
-    return;
-  }
-  const data = await resCurrent.json();
 
-  // Afficher météo actuelle
-  document.getElementById('city-name').textContent = data.name;
-  document.getElementById('temp').textContent = `${Math.round(data.main.temp)} °C`;
-  document.getElementById('descrption').textContent = data.weather[0].description;
-  document.getElementById('pressure').textContent = `${data.main.pressure} hPa`;
-  document.getElementById('humidity').textContent = `${data.main.humidity} %`;
-  document.getElementById('wind-speed').textContent = `${data.wind.speed} km/h`;
-  document.getElementById('wind-dir').textContent = `${data.wind.deg}°`;
-checkWeatherAlerts(data);
-  // Charger prévisions avec les coordonnées récupérées
-  const lat = data.coord.lat;
-  const lon = data.coord.lon;
-  loadForecast(lat, lon);
-  initMap(lat, lon);
-}
 
 document.getElementById('search-btn').addEventListener('click', () => {
   const city = document.getElementById('search-city').value.trim();
@@ -406,4 +407,5 @@ function renderMultiLayerChart(forecast) {
     }
   });
 }
+
 
